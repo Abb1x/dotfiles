@@ -9,7 +9,7 @@ dte()
 }
 upd()
 {
-  upd="$(checkupdates | wc -l)"
+  upd="$((eix -uc | wc -l))"
   echo -e " $upd updates"
 }
 mem()
@@ -29,7 +29,7 @@ fi
 }
 pkg()
 {
-  pkg="$(pacman -Q |wc -l)"
+  pkg="$(qlist -IRv |wc -l)"
   echo -e " $pkg"
 }
 cpu()
