@@ -10,8 +10,6 @@
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
 
-(package-refresh-contents)
-
 (unless package-archive-contents
   (package-refresh-contents))
 (require 'use-package)
