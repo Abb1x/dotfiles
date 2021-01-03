@@ -1,5 +1,5 @@
 (package-initialize)
-
+(package-refresh-contents)
 ;; Adds the repo melpa
 (require 'package)
 (add-to-list 'package-archives
