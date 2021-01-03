@@ -1,22 +1,25 @@
+(package-initialize)
 
 ;; Adds the repo melpa
-(require 'use-package)
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpa" . "https://melpa.org/packages/") t)
-
-(dolist (package '(use-package))
-   (unless (package-installed-p package)
-     (package-install package)))
-
-(dolist (package '(helm-projectile helm ag ivy dumb-jump clang-format magit rainbow-delimiters elcord org-bullets org-preview-html org all-the-icons-dired color-theme-sanityinc-tomorrow monokai-theme use-package pacmacs neotree doom-themes doom-modeline company-c-headers))
- (unless (package-installed-p package)
-   (package-install package))
-   (require package))
+     '("melpa" . "http://melpa.org/packages/") t)
 
 (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 (require 'org)
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+
+
+(package-refresh-contents)
+
+(unless package-archive-contents
+  (package-refresh-contents))
+(require 'use-package)
+
+(dolist (package '(helm-projectile helm ag ivy dumb-jump clang-format magit rainbow-delimiters elcord org-bullets org-preview-html org all-the-icons-dired color-theme-sanityinc-tomorrow monokai-theme use-package pacmacs neotree doom-themes doom-modeline company-c-headers))
+ (unless (package-installed-p package)
+   (package-install package))
+ (require package))
 
 ;; Window title
 (setq-default frame-title-format '("%b - Emacs"))
@@ -142,3 +145,16 @@
 
 
  (global-set-key (kbd "C-S-d") 'duplicate-line)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(company-c-headers doom-modeline doom-themes neotree pacmacs monokai-theme color-theme-sanityinc-tomorrow all-the-icons-dired org-preview-html org-bullets elcord rainbow-delimiters magit clang-format dumb-jump ivy ag use-package helm-projectile)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
