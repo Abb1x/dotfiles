@@ -1,3 +1,23 @@
+
+;; Adds the repo melpa
+(require 'use-package)
+(require 'package)
+(add-to-list 'package-archives
+	     '("melpa" . "https://melpa.org/packages/") t)
+
+(dolist (package '(use-package))
+   (unless (package-installed-p package)
+     (package-install package)))
+
+(dolist (package '(helm-projectile helm ag ivy dumb-jump clang-format magit rainbow-delimiters elcord org-bullets org-preview-html org all-the-icons-dired color-theme-sanityinc-tomorrow monokai-theme use-package pacmacs neotree doom-themes doom-modeline company-c-headers))
+ (unless (package-installed-p package)
+   (package-install package))
+   (require package))
+
+(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
+(require 'org)
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+
 ;; Window title
 (setq-default frame-title-format '("%b - Emacs"))
 
@@ -12,8 +32,8 @@
 (add-to-list 'projectile-globally-ignored-directories "limine")
 (setq projectile-indexing-method 'hybrid)
 ;; elcord
-(require 'elcord)
-(elcord-mode)
+;; (require 'elcord)
+;; (elcord-mode)
 ;; Clang stuff
 (require 'clang-format)
 (setq clang-format-style "file")
@@ -36,14 +56,6 @@
 
 (setq make-backup-files nil)
 
-;; Adds the repo melpa
-(require 'package)
-(add-to-list 'package-archives
-	     '("melpa" . "https://melpa.org/packages/") t)
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
-(require 'org)
-(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-(require 'use-package)
 ;; Loads the Doom Palenight theme
 (load-theme 'doom-palenight t)
 
@@ -130,19 +142,3 @@
 
 
  (global-set-key (kbd "C-S-d") 'duplicate-line)
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("c83c095dd01cde64b631fb0fe5980587deec3834dc55144a6e78ff91ebc80b19" "e1ef2d5b8091f4953fe17b4ca3dd143d476c106e221d92ded38614266cea3c8b" "9e39a8334e0e476157bfdb8e42e1cea43fad02c9ec7c0dbd5498cf02b9adeaf1" "d74c5485d42ca4b7f3092e50db687600d0e16006d8fa335c69cf4f379dbd0eee" "be9645aaa8c11f76a10bcf36aaf83f54f4587ced1b9b679b55639c87404e2499" "2f1518e906a8b60fac943d02ad415f1d8b3933a5a7f75e307e6e9a26ef5bf570" "188fed85e53a774ae62e09ec95d58bb8f54932b3fd77223101d036e3564f9206" "628278136f88aa1a151bb2d6c8a86bf2b7631fbea5f0f76cba2a0079cd910f7d" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" default))
- '(package-selected-packages
-   '(helm-projectile helm ag ivy dumb-jump clang-format magit rainbow-delimiters elcord org-bullets org-preview-html org all-the-icons-dired color-theme-sanityinc-tomorrow ## monokai-theme use-package pacmacs neotree doom-themes doom-modeline company-web company-lsp company-c-headers cobalt ayu-theme atom-one-dark-theme)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
