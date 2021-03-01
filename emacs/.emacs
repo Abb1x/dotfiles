@@ -1,116 +1,203 @@
-(package-initialize)
-(package-refresh-contents)
-;; Adds the repo melpa
+;;######################
+;; Initialization
+;;######################
+
 (require 'package)
-(add-to-list 'package-archives
-     '("melpa" . "http://melpa.org/packages/") t)
 
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
-(require 'org)
-(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+;; Set package repositories
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
 
-
+;; Refresh
+(package-initialize)
 (unless package-archive-contents
   (package-refresh-contents))
+
+;; Initialize use-package on non-Linux platforms
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+
 (require 'use-package)
+(setq use-package-always-ensure t)
 
-(dolist (package '(helm-projectile helm ag ivy dumb-jump clang-format magit rainbow-delimiters elcord org-bullets org-preview-html org all-the-icons-dired color-theme-sanityinc-tomorrow monokai-theme use-package pacmacs neotree doom-themes doom-modeline company-c-headers))
- (unless (package-installed-p package)
-   (package-install package))
- (require package))
+;; The default is 800 kilobytes.  Measured in bytes.
+(setq gc-cons-threshold (* 50 1000 1000))
 
-;; Window title
-(setq-default frame-title-format '("%b - Emacs"))
+(defun efs/display-startup-time ()
+  (message "Emacs loaded in %s with %d garbage collections."
+           (format "%.2f seconds"
+                   (float-time
+                     (time-subtract after-init-time before-init-time)))
+           gcs-done))
 
-(require 'helm)
-(require 'helm-projectile)
+(add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
-;; Removes the startup message
+
+;; Dashboard
+
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook))
+
+;; Set the title
+(setq dashboard-banner-logo-title "Welcome to Emacs!")
+
+;; Set the banner
+(setq dashboard-startup-banner 'logo)
+
+;; Icons
+(setq dashboard-set-heading-icons t)
+(setq dashboard-set-file-icons t)
+
+;; Navigator
+(setq dashboard-set-navigator t)
+
+
+;; Widgets
+(setq dashboard-items '((recents  . 5)))
+
+;;######################
+;; GUI Settings
+;;######################
+
 (setq inhibit-startup-message t)
 
-;; Projectile
-(add-to-list 'projectile-globally-ignored-file-suffixes ".o")
-(add-to-list 'projectile-globally-ignored-directories "limine")
-(setq projectile-indexing-method 'hybrid)
-;; elcord
-;; (require 'elcord)
-;; (elcord-mode)
-;; Clang stuff
-(require 'clang-format)
-(setq clang-format-style "file")
-;; Magit
-(require 'magit)
-;; Removes GUI stuff
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-(scroll-bar-mode -1)
-(global-hl-line-mode t)
+(scroll-bar-mode -1)        ; Disable visible scrollbar
+(tool-bar-mode -1)          ; Disable the toolbar
+(tooltip-mode -1)           ; Disable tooltips      
 
-(setq mac-command-modifier 'meta)
-;; Jump to definition
-(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
-;; Shows lines number
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
-;; Removes the annoying bell
-(setq visible-bell 1)
-;; Removes backup files
+(menu-bar-mode -1)            ; Disable the menu bar
 
-(setq make-backup-files nil)
+;; Set up the visible bell
+(setq visible-bell t)
 
-;; Loads the Doom Palenight theme
-(load-theme 'doom-palenight t)
+(column-number-mode)
+(global-display-line-numbers-mode t)
 
-;; Rainbow brackets
-(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
-
-;; Enables company: an autocompleter
-(global-company-mode t)
+;; Disable line numbers for some modes
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+		helm-mode-hook
+                shell-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 ;; Set font to Cascadia Code
-(set-face-attribute 'default nil :font "Cascadia Code 12" )
+(set-face-attribute 'default nil :font "Cascadia Code 12")
 (set-frame-font "Cascadia Code 12" nil t)
 
-(doom-themes-neotree-config)
-(setq doom-themes-neotree-file-icons t)
-(defun text-scale-twice ()(interactive)(progn(text-scale-adjust 0)(text-scale-decrease 0.8)))
-(add-hook 'neo-after-create-hook (lambda (_)(call-interactively 'text-scale-twice)))
-;; Enables doom-modeline
-(require 'doom-modeline)
-
-(doom-modeline-mode 1)
-
-(setq doom-modeline-height 25)
-
-;; Changes cursor
+;; Set cursor
 
 (setq-default cursor-type 'bar)
 
+;;######################
+;; Misc Settings
+;;######################
+
+
+;; Remove backup files
+(setq make-backup-files nil)
+(setq auto-save-default nil)
+
+
+;;######################
+;; UI Packages
+;;######################
+
+;; Set colorscheme
+(use-package doom-themes
+  :init (load-theme 'doom-ayu-mirage t))
+
+;; Icons for the modeline
+(use-package all-the-icons)
+
+;; Better modeline
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom ((doom-modeline-height 25)))
+
+;;######################
+;; Misc tools
+;;######################
+
+(use-package helm)
+(use-package helm-projectile)
+
+(add-to-list 'projectile-globally-ignored-file-suffixes ".o")
+(add-to-list 'projectile-globally-ignored-directories "limine")
+
+(setq projectile-indexing-method 'hybrid)
+
+;; Autopair
+
+(use-package autopair
+  :config (electric-pair-mode))
+
+;; Rainbow delimiters
+(use-package rainbow-delimiters
+  :hook ((prog-mode) . 'rainbow-delimiters-mode))
+
+
+;;######################
+;; C/C++ Tools
+;;######################
+
+(use-package clang-format)
+(setq clang-format-style "file")
+
+;; Auto-completion
+
+(use-package irony
+  :hook ((c-mode) . 'irony-mode)
+  )
+
+(use-package company
+  :config (add-to-list 'company-backends '(company-irony company-irony-c-headers))
+  (global-company-mode))
+
+(setq company-backends (delete 'company-semantic company-backends))
+
+(use-package company-lsp)
+(require 'company-lsp)
+(push 'company-lsp company-backends)
+
+
+
+(require 'cc-mode)
+(define-key c-mode-map  [(tab)] 'company-complete)
+(define-key c++-mode-map  [(tab)] 'company-complete)
+
+;;######################
+;; Python tools
+;;######################
+
+(use-package lsp-pyright
+  :ensure t
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp))))
+
+;;######################
 ;; Org mode
+;;######################
+
+(use-package org)
 
 (setq org-hide-emphasis-markers t)
 
 (use-package org-bullets
-  :after org
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
-;; Disable line numbers for some modes
-(dolist (mode '(org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-                treemacs-mode-hook
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-;; Ligatures
-(use-package ligature
-  :load-path "~/emacs/ligature.el"
-  :config
-  ;; Enable the "www" ligature in every possible major mode
-  (ligature-set-ligatures 't '("www"))
-  (ligature-set-ligatures 'prog-mode '("!=" "==" "===" "->" "<-" "==>" "<==" ">>>" "<<<" "=>" "<=" ">=" "::" "..." "&&" "<<" ">>" "__" ".." "///" "##" "###" "####" "<>" "!!" ";;" "||" "|||" ":=" "??"))
-  (global-ligature-mode t))
+
+;;######################
 ;; Keybindings
+;;######################
+
+
 (global-set-key (kbd "C-S-x") 'kill-whole-line)
 
 (global-unset-key (kbd "<left>") )
@@ -121,35 +208,34 @@
 
 (global-unset-key (kbd "<down>") )
 
-(global-set-key (kbd "C-1") 'neotree-toggle)
 
-(global-set-key (kbd "C-S-j") 'next-line)
-(global-set-key (kbd "C-S-k") 'previous-line)
-(global-set-key (kbd "C-S-h") 'backward-char)
-(global-set-key (kbd "C-S-l") 'forward-char)
+
+(global-set-key (kbd "C-S-x") 'kill-whole-line)
+
+(global-unset-key (kbd "<left>") )
+
+(global-unset-key (kbd "<right>") )
+
+(global-unset-key (kbd "<up>") )
+
+(global-unset-key (kbd "<down>") )
+
 (global-set-key (kbd "C-S-c") 'clang-format-buffer)
+
 (global-set-key (kbd "C-x C-f") 'helm-projectile)
+
+(global-set-key (kbd "C-S-f") 'find-file)
+
 (global-set-key (kbd "C-x C-r") 'helm-recentf)
 
-(defun duplicate-line ()
-   (interactive)
-   (let ((col (current-column)))
-     (move-beginning-of-line 1)
-     (kill-line)
-     (yank)
-     (newline)
-     (yank)
-     (move-to-column col)))
-
-
- (global-set-key (kbd "C-S-d") 'duplicate-line)
+(global-set-key (kbd "C-)") 'compile)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(company-c-headers doom-modeline doom-themes neotree pacmacs monokai-theme color-theme-sanityinc-tomorrow all-the-icons-dired org-preview-html org-bullets elcord rainbow-delimiters magit clang-format dumb-jump ivy ag use-package helm-projectile)))
+   '(dashboard lsp-pyright lsp-python-ms company-lsp org-bullets org-mode use-package rainbow-delimiters irony helm-projectile doom-themes doom-modeline company clang-format autopair)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
