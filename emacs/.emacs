@@ -19,6 +19,8 @@
   (package-install 'use-package))
 
 (require 'use-package)
+
+
 (setq use-package-always-ensure t)
 
 ;; The default is 800 kilobytes.  Measured in bytes.
@@ -85,9 +87,13 @@
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 ;; Set font to Cascadia Code
-(set-face-attribute 'default nil :font "Cascadia Code 12")
-(set-frame-font "Cascadia Code 12" nil t)
+(set-face-attribute 'default nil :font "Cascadia Code" :height 120)
 
+;; Set the fixed pitch face
+(set-face-attribute 'fixed-pitch nil :font "Cascadia Code" :height 120)
+
+
+(add-to-list 'default-frame-alist '(font . "Cascadia Code 12"))
 ;; Set cursor
 
 (setq-default cursor-type 'bar)
@@ -101,6 +107,9 @@
 (setq make-backup-files nil)
 (setq auto-save-default nil)
 
+(load (expand-file-name "~/.quicklisp/slime-helper.el"))
+;; Replace "sbcl" with the path to your implementation
+(setq inferior-lisp-program "/usr/bin/sbcl")
 
 ;;######################
 ;; UI Packages
@@ -108,15 +117,30 @@
 
 ;; Set colorscheme
 (use-package doom-themes
-  :init (load-theme 'doom-ayu-mirage t))
-
+:init (load-theme 'doom-nord t))
 ;; Icons for the modeline
 (use-package all-the-icons)
 
 ;; Better modeline
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 25)))
+  :custom ((doom-modeline-height 30)))
+
+
+;;(use-package centaur-tabs
+;;  :demand
+;;  :config
+;;  (centaur-tabs-mode t)
+;;  :bind
+;;  ("C-<prior>" . centaur-tabs-backward)
+;;  ("C-<next>" . centaur-tabs-forward)
+;;)
+
+;;(setq centaur-tabs-style "bar")
+;;(setq centaur-tabs-set-icons t)
+;;(setq centaur-tabs-height 15)
+;;(setq centaur-tabs-set-bar 'left)
+;;(setq centaur-tabs-set-modified-marker t)
 
 ;;######################
 ;; Misc tools
@@ -129,9 +153,7 @@
 (add-to-list 'projectile-globally-ignored-directories "limine")
 
 (setq projectile-indexing-method 'hybrid)
-
 ;; Autopair
-
 (use-package autopair
   :config (electric-pair-mode))
 
@@ -182,15 +204,48 @@
 ;;######################
 ;; Org mode
 ;;######################
+(defun efs/org-font-setup ()
+  ;; Replace list hyphen with dot
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\([-]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+   ;; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+		  (org-level-8 . 1.1)))))
+  
+(defun efs/org-mode-setup ()
+  (org-indent-mode)
+  (visual-line-mode 1))
 
-(use-package org)
+(use-package org
+  :pin org
+  :commands (org-capture org-agenda)
+  :hook (org-mode . efs/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾")
+  (setq org-hide-emphasis-markers t)
+  (efs/org-font-setup))
 
-(setq org-hide-emphasis-markers t)
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+  
+(defun efs/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :hook (org-mode . efs/org-mode-visual-fill))
 
 
 ;;######################
@@ -198,6 +253,7 @@
 ;;######################
 
 
+(evil-mode)
 (global-set-key (kbd "C-S-x") 'kill-whole-line)
 
 (global-unset-key (kbd "<left>") )
@@ -225,6 +281,7 @@
 (global-set-key (kbd "C-x C-f") 'helm-projectile)
 
 (global-set-key (kbd "C-S-f") 'find-file)
+(global-set-key (kbd "C-z") 'undo)
 
 (global-set-key (kbd "C-x C-r") 'helm-recentf)
 
@@ -234,8 +291,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("fce3524887a0994f8b9b047aef9cc4cc017c5a93a5fb1f84d300391fba313743" "8f5a7a9a3c510ef9cbb88e600c0b4c53cdcdb502cfe3eb50040b7e13c6f4e78e" default))
  '(package-selected-packages
-   '(dashboard lsp-pyright lsp-python-ms company-lsp org-bullets org-mode use-package rainbow-delimiters irony helm-projectile doom-themes doom-modeline company clang-format autopair)))
+   '(visual-fill-column weblorg web-mode use-package rainbow-delimiters pfuture org-bullets lsp-pyright irony hydra htmlize helm-projectile go-mode evil doom-themes doom-modeline dashboard company-lsp clang-format cfrs autopair ace-window)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
