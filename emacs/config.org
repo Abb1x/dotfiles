@@ -89,52 +89,52 @@ I enjoy a lot Microsoft's Cascadia Code.
 Dashboard is a replacement for emacs's default launch screen, it is highly customizable.
 
 #+begin_src emacs-lisp
-    (use-package dashboard
-      :ensure t
-      :config
-      (dashboard-setup-startup-hook))
+	(use-package all-the-icons)
+	(use-package dashboard
+	  :ensure t
+	  :config
+	  (dashboard-setup-startup-hook))
 
-    ;; Set the title
-    (setq dashboard-banner-logo-title "Welcome to Emacs!")
+	;; Set the title
+	(setq dashboard-banner-logo-title "Welcome to Emacs!")
 
-    ;; Set the banner
-    (setq dashboard-startup-banner "/home/abbix/.emacs.d/text.txt")
+	;; Set the banner
+	(setq dashboard-startup-banner "/home/abbix/.emacs.d/text.txt")
 
-    ;; Icons
-    (setq dashboard-set-heading-icons t)
-    (setq dashboard-set-file-icons t)
+	;; Icons
+	(setq dashboard-set-heading-icons t)
+	(setq dashboard-set-file-icons t)
 
-    ;; Navigator
-    (setq dashboard-set-navigator t)
+	;; Navigator
+	(setq dashboard-set-navigator t)
 
-  (setq dashboard-navigator-buttons
-`(;; line1
-            ((,(all-the-icons-faicon "undo" :height 1.1 :v-adjust 0.0)
-              "Update"
-              "Update Emacs"
-              (lambda (&rest _) (package-refresh-contents)))
-             (,(all-the-icons-octicon "times" :height 1.1 :v-adjust 0.0)
-              "Quit"
-              "Close Emacs"
-              (lambda (&rest _) (save-buffers-kill-terminal))))))
+      (setq dashboard-navigator-buttons
+    `(;; line1
+		((,(all-the-icons-faicon "undo" :height 1.1 :v-adjust 0.0)
+		  "Update"
+		  "Update Emacs"
+		  (lambda (&rest _) (package-refresh-contents)))
+		 (,(all-the-icons-faicon "times" :height 1.1 :v-adjust 0.0)
+		  "Quit"
+		  "Close Emacs"
+		  (lambda (&rest _) (save-buffers-kill-terminal))))))
 
-    (setq dashboard-center-content t)
+	(setq dashboard-center-content t)
 
 
-    ;; Widgets
-    (setq dashboard-items '((recents  . 5)
-                            (projects . 5)))
+	;; Widgets
+	(setq dashboard-items '((recents  . 5)
+				(projects . 5)))
 
 #+end_src
 
 ** Colorscheme
-This sets up the =doom-one= colorscheme.
+This sets up the =doom-ayu= colorscheme.
+Be sure to run =cd ~/.emacs.d/elpa/doom-themes*/ && wget https://raw.githubusercontent.com/LoveSponge/emacs-doom-themes/master/themes/doom-ayu-dark-theme.el= first.
+
 #+begin_src emacs-lisp
-    (defun abx/download-ayu ()
-    (shell-command "cd ~/.emacs.d/elpa/doom-themes*/ && wget https://raw.githubusercontent.com/LoveSponge/emacs-doom-themes/master/themes/doom-ayu-dark-theme.el")
-    (load-theme 'doom-ayu-dark t))
       (use-package doom-themes
-        :init (abx/download-ayu))
+        :init (load-theme 'doom-ayu-dark t))
 #+end_src
 
 ** Modeline
@@ -142,8 +142,6 @@ This installs =doom-modeline= which is a customizable bar.
 
 #+begin_src emacs-lisp
 ;; Icons
-(use-package all-the-icons)
-
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 30)))
@@ -218,7 +216,7 @@ Adds autocompletion for C & C++.
 ;; Auto-completion
 (use-package irony
   :hook ((c-mode) . 'irony-mode)
-  )/
+  )
 
 (use-package company
   :config (add-to-list 'company-backends '(company-irony company-irony-c-headers))

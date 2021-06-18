@@ -51,7 +51,8 @@
 ;; Set cursor
 (setq-default cursor-type 'bar)
 
-(use-package dashboard
+(use-package all-the-icons)
+    (use-package dashboard
       :ensure t
       :config
       (dashboard-setup-startup-hook))
@@ -71,31 +72,26 @@
 
   (setq dashboard-navigator-buttons
 `(;; line1
-            ((,(all-the-icons-faicon "undo" :height 1.1 :v-adjust 0.0)
-              "Update"
-              "Update Emacs"
-              (lambda (&rest _) (package-refresh-contents)))
-             (,(all-the-icons-octicon "times" :height 1.1 :v-adjust 0.0)
-              "Quit"
-              "Close Emacs"
-              (lambda (&rest _) (save-buffers-kill-terminal))))))
+	    ((,(all-the-icons-faicon "undo" :height 1.1 :v-adjust 0.0)
+	      "Update"
+	      "Update Emacs"
+	      (lambda (&rest _) (package-refresh-contents)))
+	     (,(all-the-icons-faicon "times" :height 1.1 :v-adjust 0.0)
+	      "Quit"
+	      "Close Emacs"
+	      (lambda (&rest _) (save-buffers-kill-terminal))))))
 
     (setq dashboard-center-content t)
 
 
     ;; Widgets
     (setq dashboard-items '((recents  . 5)
-                            (projects . 5)))
+			    (projects . 5)))
 
-(defun abx/download-ayu ()
-(shell-command "cd ~/.emacs.d/elpa/doom-themes*/ && wget https://raw.githubusercontent.com/LoveSponge/emacs-doom-themes/master/themes/doom-ayu-dark-theme.el")
-(load-theme 'doom-ayu-dark t))
-  (use-package doom-themes
-    :init (abx/download-ayu))
+(use-package doom-themes
+  :init (load-theme 'doom-ayu-dark t))
 
 ;; Icons
-(use-package all-the-icons)
-
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 30)))
@@ -137,7 +133,7 @@
 ;; Auto-completion
 (use-package irony
   :hook ((c-mode) . 'irony-mode)
-  )/
+  )
 
 (use-package company
   :config (add-to-list 'company-backends '(company-irony company-irony-c-headers))
