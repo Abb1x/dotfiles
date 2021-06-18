@@ -50,6 +50,9 @@ Emacs is ugly by default, these following lines will remove the toolbar, bell, w
 ;; Set up the visible bell
 (setq visible-bell t)
 
+(setq make-backup-files nil)
+(setq auto-save-default nil)
+
 #+end_src
 
 ** Line numbers
@@ -72,11 +75,11 @@ This will disable line numbers in certain modes.
 ** Font
 I enjoy a lot Microsoft's Cascadia Code.
 #+begin_src emacs-lisp
-(set-face-attribute 'default nil :font "Cascadia Code" :height 120)
+(set-face-attribute 'default nil :font "JetBrains Mono" :height 120)
 
-(set-face-attribute 'fixed-pitch nil :font "Cascadia Code" :height 120)
+(set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height 120)
 
-(add-to-list 'default-frame-alist '(font . "Cascadia Code 12"))
+(add-to-list 'default-frame-alist '(font . "JetBrains Mono 12"))
 
 ;; Set cursor
 (setq-default cursor-type 'bar)
@@ -86,35 +89,52 @@ I enjoy a lot Microsoft's Cascadia Code.
 Dashboard is a replacement for emacs's default launch screen, it is highly customizable.
 
 #+begin_src emacs-lisp
-(use-package dashboard
-  :ensure t
-  :config
-  (dashboard-setup-startup-hook))
+    (use-package dashboard
+      :ensure t
+      :config
+      (dashboard-setup-startup-hook))
 
-;; Set the title
-(setq dashboard-banner-logo-title "Welcome to Emacs!")
+    ;; Set the title
+    (setq dashboard-banner-logo-title "Welcome to Emacs!")
 
-;; Set the banner
-(setq dashboard-startup-banner 'logo)
+    ;; Set the banner
+    (setq dashboard-startup-banner "/home/abbix/.emacs.d/text.txt")
 
-;; Icons
-(setq dashboard-set-heading-icons t)
-(setq dashboard-set-file-icons t)
+    ;; Icons
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-set-file-icons t)
 
-;; Navigator
-(setq dashboard-set-navigator t)
+    ;; Navigator
+    (setq dashboard-set-navigator t)
+
+  (setq dashboard-navigator-buttons
+`(;; line1
+            ((,(all-the-icons-faicon "undo" :height 1.1 :v-adjust 0.0)
+              "Update"
+              "Update Emacs"
+              (lambda (&rest _) (package-refresh-contents)))
+             (,(all-the-icons-octicon "times" :height 1.1 :v-adjust 0.0)
+              "Quit"
+              "Close Emacs"
+              (lambda (&rest _) (save-buffers-kill-terminal))))))
+
+    (setq dashboard-center-content t)
 
 
-;; Widgets
-(setq dashboard-items '((recents  . 5)))
+    ;; Widgets
+    (setq dashboard-items '((recents  . 5)
+                            (projects . 5)))
 
 #+end_src
 
 ** Colorscheme
-This sets up the =doom-nord= colorscheme.
+This sets up the =doom-one= colorscheme.
 #+begin_src emacs-lisp
-(use-package doom-themes
-:init (load-theme 'doom-nord t))
+    (defun abx/download-ayu ()
+    (shell-command "cd ~/.emacs.d/elpa/doom-themes*/ && wget https://raw.githubusercontent.com/LoveSponge/emacs-doom-themes/master/themes/doom-ayu-dark-theme.el")
+    (load-theme 'doom-ayu-dark t))
+      (use-package doom-themes
+        :init (abx/download-ayu))
 #+end_src
 
 ** Modeline
@@ -127,6 +147,12 @@ This installs =doom-modeline= which is a customizable bar.
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 30)))
+
+(defun enable-doom-modeline-icons (_frame)
+  (setq doom-modeline-icon t))
+  
+(add-hook 'after-make-frame-functions 
+          #'enable-doom-modeline-icons)
 #+end_src
 ** Which-key
 =which-key= is a tool that shows you every possible completions for keybindings.
@@ -154,11 +180,10 @@ helm is a completion framework for emacs, projectile is a tool to manage project
 #+end_src
 
 ** Autopair
-=autopair= pairs brackets automatically.
+This enables parentheses autopairing.
 
 #+begin_src emacs-lisp
-(use-package autopair
-  :config (electric-pair-mode))
+(electric-pair-mode)
 #+end_src
 
 ** Rainbow-delimiters
@@ -167,6 +192,21 @@ helm is a completion framework for emacs, projectile is a tool to manage project
 #+begin_src emacs-lisp
 (use-package rainbow-delimiters
   :hook ((prog-mode) . 'rainbow-delimiters-mode))
+#+end_src
+** dumb-jump
+=dumb-jump= is a tool to jump to function definitions without generating tags.
+
+#+begin_src emacs-lisp
+  (use-package dumb-jump)
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+
+#+end_src
+
+** Magit
+Magit is a tool to control your git repo from emacs.
+
+#+begin_src emacs-lisp
+  (use-package magit)
 #+end_src
 * Development
 ** C & C++
@@ -178,7 +218,7 @@ Adds autocompletion for C & C++.
 ;; Auto-completion
 (use-package irony
   :hook ((c-mode) . 'irony-mode)
-  )
+  )/
 
 (use-package company
   :config (add-to-list 'company-backends '(company-irony company-irony-c-headers))
@@ -191,57 +231,78 @@ Adds autocompletion for C & C++.
 (define-key c++-mode-map  [(tab)] 'company-complete)
 #+end_src
 
+**** TODO and FIXME
+this highlights TODO and FIXME comments
+#+begin_src emacs-lisp
+(add-hook 'c-mode-common-hook
+               (lambda ()
+                (font-lock-add-keywords nil
+                 '(("\\<\\(FIXME\\|TODO\\|BUG\\):" 1 font-lock-warning-face t)))))
+
+#+end_src
+
 * Org-mode
 ** Setup
 This sets up org-mode.
 #+begin_src emacs-lisp
-(defun abx/org-font-setup ()
-  ;; Replace list hyphen with dot
-  (font-lock-add-keywords 'org-mode
-                          '(("^ *\\([-]\\) "
-                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-   ;; Set faces for heading levels
-  (dolist (face '((org-level-1 . 1.2)
-                  (org-level-2 . 1.1)
-                  (org-level-3 . 1.05)
-                  (org-level-4 . 1.0)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-		  (org-level-8 . 1.1)))))
+    (defun abx/org-font-setup ()
+      ;; Replace list hyphen with dot
+      (font-lock-add-keywords 'org-mode
+                              '(("^ *\\([-]\\) "
+                                 (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+       ;; Set faces for heading levels
+      (dolist (face '((org-level-1 . 1.2)
+                      (org-level-2 . 1.1)
+                      (org-level-3 . 1.05)
+                      (org-level-4 . 1.0)
+                      (org-level-5 . 1.1)
+                      (org-level-6 . 1.1)
+                      (org-level-7 . 1.1)
+                      (org-level-8 . 1.1)))))
 
-(defun abx/org-mode-setup ()
-  (org-indent-mode)
-  (visual-line-mode 1))
+    (defun abx/org-mode-setup ()
+      (org-indent-mode)
+      (visual-line-mode 1))
 
-(use-package org
-  :pin org
-  :commands (org-capture org-agenda)
-  :hook (org-mode .  abx/org-mode-setup)
-  :config
-  (setq org-ellipsis " ▾")
-  (setq org-hide-emphasis-markers t)
-  (abx/org-font-setup))
+    (use-package org
+      :pin org
+      :commands (org-capture org-agenda)
+      :hook (org-mode .  abx/org-mode-setup)
+      :ensure org-plus-contrib
+      :config
+      (setq org-ellipsis " ▾")
+      (setq org-hide-emphasis-markers t)
+      (abx/org-font-setup))
 
-(with-eval-after-load 'org
-  (org-babel-do-load-languages
-      'org-babel-load-languages
-      '((emacs-lisp . t)
-      (python . t)))
+    (require 'ox-groff)
+    (with-eval-after-load 'org
+      (org-babel-do-load-languages
+          'org-babel-load-languages
+          '((emacs-lisp . t)
+          (python . t)))
 
-  (push '("conf-unix" . conf-unix) org-src-lang-modes))
+      (push '("conf-unix" . conf-unix) org-src-lang-modes))
 
-(defun abx/org-babel-tangle-config ()
-  (when (string-equal (file-name-directory (buffer-file-name))
-                      (expand-file-name user-emacs-directory))
-    ;; Dynamic scoping to the rescue
-    (let ((org-confirm-babel-evaluate nil))
-      (org-babel-tangle))))
+    (defun abx/org-babel-tangle-config ()
+      (when (string-equal (file-name-directory (buffer-file-name))
+                          (expand-file-name user-emacs-directory))
+        ;; Dynamic scoping to the rescue
+        (let ((org-confirm-babel-evaluate nil))
+          (org-babel-tangle))))
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'abx/org-babel-tangle-config)))
+    (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'abx/org-babel-tangle-config)))
 
 #+end_src
 
+** Latex
+#+begin_src emacs-lisp
+(setq org-latex-compiler "xelatex")
+(setq org-latex-pdf-process
+      (list (concat "latexmk -"
+                    org-latex-compiler 
+                    " -recorder -synctex=1 -bibtex-cond %b")))
+
+#+end_src
 ** Org-bullets
 
 =org-bullets= replaces =*= with custom symbols.
@@ -271,8 +332,16 @@ This sets up padding to make it file more like you're editing a document.
 ** Evil
 This sets up =evil= the Extensible VI Layer
 #+begin_src emacs-lisp
-(use-package evil)
-(evil-mode)
+
+(setq evil-want-keybinding nil)
+  (use-package evil)
+      (evil-mode)
+
+    (use-package evil-collection
+      :after evil
+      :ensure t
+      :config
+      (evil-collection-init))
 #+end_src
 
 ** Keys
@@ -302,3 +371,67 @@ These are my kinda crappy keybindings.
 (global-set-key (kbd "C-)") 'compile)
 
 #+end_src
+#+BEGIN_COMMENT
+* COMMENT EXWM
+** Setup
+This is the main setup of EXWM, it runs commands and other stuff
+
+#+begin_src emacs-lisp
+
+(use-package exwm
+:config
+(setq exwm-workspace-number 5)
+(setq exwm-input-prefix-keys
+'(?\C-x
+  ?\M-&
+  ?\M-x
+  ?\C-h))
+
+(define-key exwm-mode-map [?\C-q] 'exwm-input-send-key)
+
+(setq exwm-input-global-keys
+'(
+ ([?\s-r] . exwm-reset)
+ ([s-left] . windmove-left)
+ ([s-right] . windmove-right)
+ ([s-up] . windmove-up)
+ ([s-down] . windmove-down)
+ )
+
+)
+
+(require 'exwm-config)
+
+(exwm-config-default)
+
+(require 'exwm-randr)
+(exwm-randr-enable)
+
+(start-process-shell-command "xrandr" nil " xrandr --output HDMI1 --primary --mode 1920x1080 --output LVDS1 --off")
+
+
+
+#+end_src
+
+** Systray
+This enables the systemtray
+#+begin_src emacs-lisp
+
+(require 'exwm-systemtray)
+(exwm-systemtray-enable)
+
+
+#+end_src
+** Modeline
+#+begin_src emacs-lisp
+(display-time-mode 1)
+
+#+end_src
+
+** End
+
+#+begin_src emacs-lisp
+(exwm-enable))
+#+end_src
+#+END_COMMENT
+#+END_COMMENT
